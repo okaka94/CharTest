@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Sample.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Sample.h" />
+    <ClInclude Include="TestHeader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="New">
+      <UniqueIdentifier>{eea8b268-671b-4ac5-94f2-baad5a4c48a2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
