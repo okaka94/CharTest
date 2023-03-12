@@ -164,7 +164,7 @@ struct FBXNodeData
 
 	// Bind Pose Matrix
 	//Matrix4x4				BindPoseMatrix;
-	std::map<std::string, Matrix>				BindPoseMap;
+	std::map<std::string, Matrix>					BindPoseMap;
 	std::map<std::string, unsigned int>				BindPoseKeyToIndexMap;
 
 	// Original Animation Track

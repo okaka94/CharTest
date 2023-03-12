@@ -9,7 +9,18 @@
 class SkeletalMeshComponent
 {
 public:
-	std::vector<MeshComponent> Meshes;
+
+	
+	
+	std::map<std::string, Matrix>				BindPoseMap;
+	std::map<std::string, unsigned int>			BindPoseKeyToIndexMap;
+	
+
+	// UpdateAnimation
+
+
+
+	std::vector<MeshComponent> Meshes; // 정점, IW 메시데이터 
 	ID3D11InputLayout* VertexLayout = nullptr;
 	ID3D11VertexShader* VertexShader = nullptr;
 	ID3D11HullShader* HullShader = nullptr;

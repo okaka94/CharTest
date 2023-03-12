@@ -1617,7 +1617,7 @@ bool FBXLoader::Load(std::wstring _path, SkeletalMeshComponent* _mesh, Animation
 
 bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMeshComponent* _mesh)
 {
-	/*if (_src == nullptr)
+	if (_src == nullptr)
 	{
 		return false;
 	}
@@ -1631,6 +1631,7 @@ bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMesh
 		}
 		else
 		{
+			// 노드 데이터의 메시 정보 -> 스켈레탈메시 컴포넌트의 Meshes에 담기
 			if (node.MeshList.empty())
 			{
 				continue;
@@ -1647,12 +1648,15 @@ bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMesh
 				{
 					node.MeshList[idx].MaterialSlot = node.MaterialList[idx];
 				}
-
-				_dst->Meshes.push_back(node.MeshList[idx]);
+				
+				_mesh->Meshes.push_back(node.MeshList[idx]);
 			}
 
+			// 바인드포즈 맵
+			node.BindPoseMap
+
 		}
-	}*/
+	}
 
 	return true;
 }
