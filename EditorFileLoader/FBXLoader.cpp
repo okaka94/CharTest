@@ -1653,7 +1653,7 @@ bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMesh
 					node.MeshList[idx].MaterialSlot = node.MaterialList[idx];
 				}
 				
-				_mesh->Meshes.push_back(node.MeshList[idx]);
+				//_mesh->Meshes.push_back(node.MeshList[idx]);
 			}
 			
 
@@ -1684,78 +1684,3 @@ bool FBXLoader::GenerateAnimationFromFileData(FBXFileData* _src, AnimationCompon
 
 	return true;
 }
-
-
-//FbxTime time;
-//UINT StartFrame = data->AnimationSceneInfo.StartFrame;
-//UINT EndFrame = data->AnimationSceneInfo.EndFrame;
-//FbxTime::EMode TimeMode = data->AnimationSceneInfo.TimeMode;
-//std::vector<std::vector<FBXAnimationTrack>> TrackList;
-//size_t NodeNum = data->NodeList.size();
-//TrackList.resize(NodeNum);
-//for (UINT t = StartFrame; t <= EndFrame; t++)
-//{
-//	time.SetFrame(t, TimeMode); // 이게 시간을 많이 잡아먹어서 최대한 적게 호출하는게 좋다.
-//	for (size_t NodeIdx = 0; NodeIdx < NodeNum; NodeIdx++)
-//	{
-//		FbxNode* currentNode = data->NodeList[NodeIdx];
-//		FBXAnimationTrack Track;
-//		Track.Frame = t;
-//		FbxAMatrix fbxMatrix = currentNode->EvaluateGlobalTransform(time);
-//		Track.AnimationMatrix = ConvertToDxMatrix(fbxMatrix);
-//		Matrix4x4Decompose(Track.AnimationMatrix, Track.Scale, Track.Rotation, Track.Translation);
-//
-//		TrackList[NodeIdx].push_back(Track);
-//	}
-//}
-//
-//for (size_t NodeIdx = 0; NodeIdx < NodeNum; NodeIdx++)
-//{
-//	// Original Animation Track List Map.
-//	FbxNode* currentNode = data->NodeList[NodeIdx];
-//	std::string NodeName = currentNode->GetName();
-//	data->AnimationTrackMap.insert(std::make_pair(NodeName, TrackList[NodeIdx]));
-//
-//	// Generate Matrix List Map of Interpolation Animation.
-//	size_t TrackSize = TrackList[NodeIdx].size();
-//	std::vector<Matrix> InterpolationMatrixList;
-//	//InterpolationMatrixList.resize(TrackSize * _data->InterpolationSampling);
-//	for (size_t FrameIdx = 0; FrameIdx < TrackSize; FrameIdx++)
-//	{
-//		FBXAnimationTrack A, B;
-//		UINT FrameA = max(FrameIdx + 0, data->AnimationSceneInfo.StartFrame);
-//		UINT FrameB = min(FrameIdx + 1, data->AnimationSceneInfo.EndFrame);
-//		A = TrackList[NodeIdx][FrameA];
-//		B = TrackList[NodeIdx][FrameB];
-//		if (A.Frame == B.Frame) // End Frame
-//		{
-//			//InterpolationMatrixList[FrameIdx] = TrackList[NodeIdx][FrameIdx].matAnimation;
-//			InterpolationMatrixList.push_back(TrackList[NodeIdx][FrameIdx].AnimationMatrix);
-//			continue;
-//		}
-//
-//		//float t = (FrameIdx - A.frame) / (B.frame - A.frame);
-//		float tick = 1.0f / sampling; // / _data->InterpolationSampling; // Sampling 수 만큼 보간.
-//		for (float t = 0.0f; t < 1.0f; t += tick)
-//		{
-//			Vector3 translation = LinearInterpolation(A.Translation, B.Translation, t);
-//			Vector3 scale = LinearInterpolation(A.Scale, B.Scale, t);
-//			Matrix matScale;
-//			//matScale = matScale.Identity();
-//			//matScale.Identity();
-//			matScale._11 = scale.x;
-//			matScale._22 = scale.y;
-//			matScale._33 = scale.z;
-//			Vector4 qRotation = SphereLinearInterpolation(A.Rotation, B.Rotation, t);
-//			Matrix matRotation = QuaternionToMatrix4x4(qRotation);
-//			Matrix rst = matScale * matRotation;
-//			rst._41 = translation.x;
-//			rst._42 = translation.y;
-//			rst._43 = translation.z;
-//
-//			//InterpolationMatrixList[FrameIdx] = rst;
-//			InterpolationMatrixList.push_back(rst);
-//		}
-//	}
-//	data->InterpolationFrameMatrixList.insert(std::make_pair(NodeName, InterpolationMatrixList));
-//}

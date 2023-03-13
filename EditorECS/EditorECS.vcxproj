@@ -177,7 +177,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>../include/;../include/EditorCore/;../include/ECS/;../include/BaseCore/;../include/EditorFileLoader/;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include/;../include/EditorCore/;../include/ECS/;../include/BaseCore/;../include/EditorFileLoader/;../include/FBX/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>

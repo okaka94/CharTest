@@ -9,7 +9,7 @@ MeshComponent::~MeshComponent()
 {
 	if (MaterialSlot != nullptr)
 	{
-		delete MaterialSlot;
+		//delete MaterialSlot;
 		MaterialSlot = nullptr;
 	}
 }

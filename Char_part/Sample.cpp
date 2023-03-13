@@ -8,6 +8,8 @@
 #include "DirectionalLight.h"
 #include "SkyBoxComponent.h"
 #include "FBXLoader.hpp"
+// юс╫ц
+#include "AnimationComponent.h"
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -145,8 +147,9 @@ bool SampleCore::Initialize()
 
 	// Fbx Loader Test
 	Actor* fbxActor = new Actor;
-	auto fbxMeshComp = fbxActor->AddComponent<StaticMeshComponent>();
-	FBXLoader::GetInstance()->Load(L"../resource/FBX/charMob.FBX", fbxMeshComp);
+	auto fbxMeshComp = fbxActor->AddComponent<SkeletalMeshComponent>();
+	auto fbxAnimComp = fbxActor->AddComponent<AnimationComponent>();
+	FBXLoader::GetInstance()->Load(L"../resource/FBX/charMob.FBX", fbxMeshComp,fbxAnimComp);
 	MainWorld.AddEntity(fbxActor);
 
 

@@ -15,16 +15,17 @@ class AnimationComponent
 public:
 	// 애니메이션 정보
 	FBXAnimationSceneInfo	AnimationSceneInfo;
-
 	// string -> NodeName
 	std::map<std::string, std::vector<Matrix>>	InterpolationFrameMatrixList;
-
-	
-
 	// 애니메이션 스테이트
 	AnimationState		CurrentState;
 
-	// 현재 포즈
+public:
+	AnimationComponent() {};
+	virtual ~AnimationComponent() {};
+
+public:
+	virtual bool Tick(float tick);
 	
 };
 

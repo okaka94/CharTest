@@ -5,6 +5,7 @@
 #include "MeshComponent.hpp"
 #include "DXShaderManager.h"
 #include "TransformComponent.h"
+#include "FBXObject.hpp"
 
 class SkeletalMeshComponent
 {
