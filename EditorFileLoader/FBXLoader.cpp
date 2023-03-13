@@ -1,5 +1,6 @@
 #include "FBXLoader.hpp"
 #include "AnimationComponent.h"
+#include "SkeletalMeshComponent.h"
 
 bool FBXLoader::Initialize()
 {
@@ -622,7 +623,7 @@ bool FBXLoader::ParseMesh(FbxMesh* mesh, FBXFileData* dst, FBXNodeData* dstData)
 				}
 
 				//VertexList[MaterialIdx].push_back(Vertex(pos, normal, color, texture));
-				if (dstData->BindPoseMap.empty())
+				if (dst->BindPoseMap.empty())
 				{
 					//_dstData->Materials[MaterialIdx].push_back(Vertex(pos, normal, color, texture));
 					dstData->MeshList[MaterialIdx].Vertices.push_back(Vertex(pos, normal, color, texture, tangent));
@@ -643,22 +644,22 @@ bool FBXLoader::ParseMesh(FbxMesh* mesh, FBXFileData* dst, FBXNodeData* dstData)
 						{
 							if (SkinWeightIdx == 0)
 							{
-								IWDatas.Index.x = dstData->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
+								IWDatas.Index.x = dst->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
 								IWDatas.Weight.x = SkinWeightList[SkinWeightIdx].weight;
 							}
 							if (SkinWeightIdx == 1)
 							{
-								IWDatas.Index.y = dstData->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
+								IWDatas.Index.y = dst->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
 								IWDatas.Weight.y = SkinWeightList[SkinWeightIdx].weight;
 							}
 							if (SkinWeightIdx == 2)
 							{
-								IWDatas.Index.z = dstData->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
+								IWDatas.Index.z = dst->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
 								IWDatas.Weight.z = SkinWeightList[SkinWeightIdx].weight;
 							}
 							if (SkinWeightIdx == 3)
 							{
-								IWDatas.Index.w = dstData->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
+								IWDatas.Index.w = dst->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
 								IWDatas.Weight.w = SkinWeightList[SkinWeightIdx].weight;
 							}
 							
@@ -801,16 +802,16 @@ bool FBXLoader::ParseMeshSkinning(FbxMesh* mesh, FBXFileData* dst, FBXNodeData* 
 			FbxAMatrix matInversedBindPose = matRefGlobalInitPosition.Inverse() * matXBindPose; // 전역 행렬이 곱해진 후 바인드 포즈가 곱해진 것이 애니메이션
 			matInversedBindPose = matInversedBindPose.Inverse(); // 따라서 역행렬로 만들어 주어서 정점에 곱해 주어야 뼈대의 로컬 행렬로 변환 가능하다.
 			Matrix matInvBindPose = ConvertToDxMatrix(matInversedBindPose); // 정점과 곱한 후 VertexBuffer에 넣고 월드 행렬과 곱해줘도 되고, VertexBuffer는 냅두고 월드 행렬 앞에 곱해도 됨.
-			//_dst->BindPoseMap.insert(std::make_pair(BoneIndex, matInvBindPose)); // 상수 버퍼 적용 전에 곱해 주고
-			dstData->BindPoseMap.insert(std::make_pair(LinkedNodeName, matInvBindPose)); // 상수 버퍼 적용 전에 곱해 주고
+			dst->BindPoseMap.insert(std::make_pair(LinkedNodeName, matInvBindPose)); // 상수 버퍼 적용 전에 곱해 주고
+			//dstData->BindPoseMap.insert(std::make_pair(LinkedNodeName, matInvBindPose)); // 상수 버퍼 적용 전에 곱해 주고
 		}
 		
 	}
 
 	int BindPoseIdx = 0;
-	for (auto it : dstData->BindPoseMap)
+	for (auto it : dst->BindPoseMap)
 	{
-		dstData->BindPoseKeyToIndexMap.insert(std::make_pair(it.first, BindPoseIdx++));
+		dst->BindPoseKeyToIndexMap.insert(std::make_pair(it.first, BindPoseIdx++));
 	}
 
 	return true;
@@ -1622,6 +1623,9 @@ bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMesh
 		return false;
 	}
 
+	_mesh->BindPoseMap = _src->BindPoseMap;
+	_mesh->BindPoseKeyToIndexMap = _src->BindPoseKeyToIndexMap;
+
 	FBXFileData* pData = _src;
 	for (auto& node : pData->NodeDataList)
 	{
@@ -1651,9 +1655,7 @@ bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMesh
 				
 				_mesh->Meshes.push_back(node.MeshList[idx]);
 			}
-
-			// 바인드포즈 맵
-			node.BindPoseMap
+			
 
 		}
 	}
@@ -1676,7 +1678,7 @@ bool FBXLoader::GenerateAnimationFromFileData(FBXFileData* _src, AnimationCompon
 	}
 	_anim->AnimationSceneInfo = _src->AnimationSceneInfo;
 	_anim->InterpolationFrameMatrixList = _src->InterpolationFrameMatrixList;
-	_anim->BindPoseMap = _src->bindpose
+	
 
 
 

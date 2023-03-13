@@ -3,9 +3,11 @@
 
 struct AnimationState 
 {
-	float m_currentAnimationFrame;
-	float m_AnimationInverse;
+	float m_currentAnimationFrame = 0.f;
+	float m_AnimationInverse = 1.f;
+	BindPoseAnimationData	BPAnimData;
 	// 현재 애니메이션 추가해서 애니메이션 교체가능하도록
+	// currentAnimation
 };
 
 class AnimationComponent
@@ -13,14 +15,18 @@ class AnimationComponent
 public:
 	// 애니메이션 정보
 	FBXAnimationSceneInfo	AnimationSceneInfo;
+
+	// string -> NodeName
 	std::map<std::string, std::vector<Matrix>>	InterpolationFrameMatrixList;
-	std::map<std::string, Matrix>				BindPoseMap;
-	std::map<std::string, unsigned int>			BindPoseKeyToIndexMap;
+
+	
 
 	// 애니메이션 스테이트
-	AnimationState		AnimState;
+	AnimationState		CurrentState;
 
 	// 현재 포즈
-	BindPoseAnimationData	BPAnimData;
+	
 };
+
+// UpdateAnimsys(AnimationComponent, skeletal) -> Rendersys(AnimationCom + SkeletalMeshCom)
 

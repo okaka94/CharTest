@@ -5,19 +5,14 @@
 #include "MeshComponent.hpp"
 #include "DXShaderManager.h"
 #include "TransformComponent.h"
+#include "FBXObject.hpp"
 
 class SkeletalMeshComponent
 {
 public:
 
-	
-	
 	std::map<std::string, Matrix>				BindPoseMap;
 	std::map<std::string, unsigned int>			BindPoseKeyToIndexMap;
-	
-
-	// UpdateAnimation
-
 
 
 	std::vector<MeshComponent> Meshes; // 정점, IW 메시데이터 

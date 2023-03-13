@@ -24,24 +24,24 @@
 //			//ConstantBufferData_Bone CBData_Bone;
 //			BPAnimData.Bone[0] = matTranspose;
 //		}
-//	}
-//	else
-//	{
-//		size_t BoneIdx = 0;
-		for (auto &it : BindPoseMap)
-		{
-			auto AnimationTrack = FileData->InterpolationFrameMatrixList.find(it.first);
-			if (AnimationTrack == FileData->InterpolationFrameMatrixList.end())
-			{
-				BPAnimData.Bone[BoneIdx++] = it.second;
-			}
-			else
-			{
-				Matrix MergedMatrix = it.second * AnimationTrack->second[InterpolationIdx];
-				BPAnimData.Bone[BoneIdx++] = MergedMatrix.Transpose();
-			}
-		}
-		
+////	}
+////	else
+////	{
+////		size_t BoneIdx = 0;
+//		for (auto &it : BindPoseMap)
+//		{
+//			auto AnimationTrack = FileData->InterpolationFrameMatrixList.find(it.first);
+//			if (AnimationTrack == FileData->InterpolationFrameMatrixList.end())
+//			{
+//				BPAnimData.Bone[BoneIdx++] = it.second;
+//			}
+//			else
+//			{
+//				Matrix MergedMatrix = it.second * AnimationTrack->second[InterpolationIdx];
+//				BPAnimData.Bone[BoneIdx++] = MergedMatrix.Transpose();
+//			}
+//		}
+//		
 //	}
 //
 //	return true;

@@ -90,7 +90,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -188,10 +188,8 @@
       <OutputFile>EditorECS.lib</OutputFile>
     </Lib>
     <PreBuildEvent>
-      <Command>RmDir /S /Q "..\\include\\EditorECS"
-MkDir "..\\include\\EditorECS"
-RmDir /S /Q "..\\lib\\EditorECS\\Debug"
-MkDir "..\\lib\\EditorECS\\Debug"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>copy "*.h" "..\\include\\EditorECS\\"
