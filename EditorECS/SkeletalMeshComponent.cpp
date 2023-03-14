@@ -33,7 +33,7 @@ bool SkeletalMeshComponent::Render()
 
 	// BoneBuffer Update -> Set CB
 	DXDevice::g_pImmediateContext->UpdateSubresource(BoneBuffer, 0, NULL, &BoneData, 0, 0);
-	DXDevice::g_pImmediateContext->VSSetConstantBuffers(1, 1, &BoneBuffer);
+	DXDevice::g_pImmediateContext->VSSetConstantBuffers(2, 1, &BoneBuffer);
 
 	DXDevice::g_pImmediateContext->PSSetConstantBuffers(4, 1, &TransformBuffer);
 

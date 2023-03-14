@@ -178,13 +178,14 @@ struct FBXNodeData
 
 	std::vector<SkinningData> SkinningList;
 
-	std::vector<MeshComponent> MeshList;
+	std::vector<SkeletalMesh> MeshList;
 	std::vector<Material*> MaterialList;
 };
 
 class FBXFileData
 {
 public:
+	std::wstring									FilePath;
 	FBXAnimationSceneInfo							AnimationSceneInfo;
 	std::map<std::string, FBXAnimationTrackList>	AnimationTrackMap;
 

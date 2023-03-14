@@ -1,4 +1,5 @@
 #include "EditorCore.h"
+#include "MaterialManager.h"
 
 EditorCore::EditorCore()
 {
@@ -33,7 +34,11 @@ bool EditorCore::Initialize()
         OutputDebugString(L"EditorCore::Initialize::CreateInputLayout::Failed Create Input Layout.");
         return false;
     }
-
+    if (!MaterialManager::GetInstance()->Initialize())
+    {
+        OutputDebugString(L"EditorCore::Initialize::MaterialManager::Failed Initialize Material Manager.");
+        return false;
+    }
 
     return true;
 }
@@ -50,6 +55,7 @@ bool EditorCore::Render()
 
 bool EditorCore::Release()
 {
+    MaterialManager::GetInstance()->Release();
     return true;
 }
 

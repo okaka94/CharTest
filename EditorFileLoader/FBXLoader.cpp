@@ -1,6 +1,8 @@
 #include "FBXLoader.hpp"
 #include "AnimationComponent.h"
 #include "SkeletalMeshComponent.h"
+//Ãß°¡
+#include "MaterialManager.h"
 
 bool FBXLoader::Initialize()
 {
@@ -392,11 +394,40 @@ bool FBXLoader::ParseNode(FbxNode* node, FBXFileData* dst)
 		{
 			FbxSurfaceMaterial* surface = node->GetMaterial(idx);
 			Material* material = new Material;
+			bool isValid = false;
+
 			material->DiffuseTextureName = GetTextureFileName(surface, FbxSurfaceMaterial::sDiffuse);
 			material->NormalTextureName = GetTextureFileName(surface, FbxSurfaceMaterial::sNormalMap);
 			material->AmbientTextureName = GetTextureFileName(surface, FbxSurfaceMaterial::sAmbient);
 			material->SpecularTextureName = GetTextureFileName(surface, FbxSurfaceMaterial::sSpecular);
 			material->EmissiveTextureName = GetTextureFileName(surface, FbxSurfaceMaterial::sEmissive);
+			if (!material->DiffuseTextureName.empty())
+			{
+				material->DiffuseTextureName = dst->FilePath + material->DiffuseTextureName;
+			}
+
+			if (!material->NormalTextureName.empty())
+			{
+				material->NormalTextureName = dst->FilePath + material->NormalTextureName;
+			}
+
+			if (!material->AmbientTextureName.empty())
+			{
+				material->AmbientTextureName = dst->FilePath + material->AmbientTextureName;
+			}
+
+			if (!material->SpecularTextureName.empty())
+			{
+				material->SpecularTextureName = dst->FilePath + material->SpecularTextureName;
+			}
+
+			if (!material->EmissiveTextureName.empty())
+			{
+				material->EmissiveTextureName = dst->FilePath + material->EmissiveTextureName;
+			}
+			std::wstring materialName;
+			materialName.assign(NodeData.Name.begin(), NodeData.Name.end());
+			MaterialManager::GetInstance()->AddMaterial(materialName, material);
 
 			NodeData.MaterialList.push_back(material);
 		}
@@ -671,7 +702,7 @@ bool FBXLoader::ParseMesh(FbxMesh* mesh, FBXFileData* dst, FBXNodeData* dstData)
 					}
 
 					dstData->MeshList[MaterialIdx].Vertices.push_back(Vertex(pos, normal, color, texture, tangent));
-					dstData->MeshList[MaterialIdx].IWList.push_back(IWDatas);
+					dstData->MeshList[MaterialIdx].SkinningIWList.push_back(IWDatas);
 					//_dstData->Materials[MaterialIdx].push_back(Vertex(pos, normal, color, texture), IWDatas);
 				}
 			}
@@ -1578,6 +1609,9 @@ bool FBXLoader::Load(std::wstring _path, SkeletalMeshComponent* _mesh, Animation
 	}
 
 	FBXFileData fbxFile;
+	std::filesystem::path filepath(_path);
+	fbxFile.FilePath = filepath.parent_path();
+	fbxFile.FilePath += L"/";
 	if (!ParseScene(pScene, &fbxFile))
 	{
 		OutputDebugString(L"FBXLoader::Load::Failed Parse Scene.\n");
@@ -1646,11 +1680,13 @@ bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMesh
 			{
 				if (node.MaterialList.empty())
 				{
-					node.MeshList[idx].MaterialSlot = nullptr;
+					node.MeshList[idx].MaterialSlot = MaterialManager::GetInstance()->GetMaterial(L"Default");
 				}
 				else
 				{
-					node.MeshList[idx].MaterialSlot = node.MaterialList[idx];
+					std::wstring materialName;
+					materialName.assign(node.Name.begin(), node.Name.end());
+					node.MeshList[idx].MaterialSlot = MaterialManager::GetInstance()->GetMaterial(materialName);
 				}
 				
 				_mesh->Meshes.push_back(node.MeshList[idx]);

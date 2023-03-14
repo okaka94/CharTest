@@ -1,9 +1,10 @@
 #pragma once
 #include "Define.h"
-#include "DXTexture.hpp"
-#include "Material.h"
-#include "MeshComponent.hpp"
-#include "DXShaderManager.h"
+//#include "DXTexture.hpp"
+//#include "Material.h"
+#include "SkeletalMesh.h"
+//#include "MeshComponent.hpp"
+//#include "DXShaderManager.h"
 #include "TransformComponent.h"
 #include "FBXObject.hpp"
 
@@ -18,7 +19,9 @@ public:
 	ID3D11Buffer*								BoneBuffer = nullptr;
 	BindPoseAnimationData						BoneData;
 
-	std::vector<MeshComponent> Meshes; // 정점, IW 메시데이터 
+	std::vector<SkeletalMesh> Meshes; // 정점, IW 메시데이터 
+
+
 	ID3D11InputLayout* VertexLayout = nullptr;
 	ID3D11VertexShader* VertexShader = nullptr;
 	ID3D11HullShader* HullShader = nullptr;
