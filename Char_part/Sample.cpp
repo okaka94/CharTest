@@ -150,7 +150,7 @@ bool SampleCore::Initialize()
 	Actor* fbxActor = new Actor;
 	auto fbxMeshComp = fbxActor->AddComponent<SkeletalMeshComponent>();
 	auto fbxAnimComp = fbxActor->AddComponent<AnimationComponent>();
-	FBXLoader::GetInstance()->Load(L"../resource/FBX/charMob.FBX", fbxMeshComp,fbxAnimComp);
+	FBXLoader::GetInstance()->Load(L"../resource/FBX/hero_hulk01.FBX", fbxMeshComp,fbxAnimComp);
 	MainWorld.AddEntity(fbxActor);
 
 

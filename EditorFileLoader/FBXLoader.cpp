@@ -1653,7 +1653,7 @@ bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMesh
 					node.MeshList[idx].MaterialSlot = node.MaterialList[idx];
 				}
 				
-				//_mesh->Meshes.push_back(node.MeshList[idx]);
+				_mesh->Meshes.push_back(node.MeshList[idx]);
 			}
 			
 
