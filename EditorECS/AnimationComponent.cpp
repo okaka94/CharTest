@@ -1,6 +1,6 @@
 #include "AnimationComponent.h"
 
-bool AnimationComponent::Tick(float tick)
+bool AnimationComponent::UpdateAnim(const SkeletalMeshComponent& mesh, float tick)
 {
 	CurrentState.m_currentAnimationFrame += (tick * AnimationSceneInfo.FrameSpeed * CurrentState.m_AnimationInverse);
 	if ((CurrentState.m_currentAnimationFrame > AnimationSceneInfo.EndFrame ) ||
@@ -13,34 +13,35 @@ bool AnimationComponent::Tick(float tick)
 
 	UINT InterpolationIdx = CurrentState.m_currentAnimationFrame * 100; // InterpolationSampling 일단 100 고정
 	
-	if (BindPoseMap.empty())
+	// 스켈레탈이면 바인드포즈 맵 이미 있다고 가정하고..? 무슨 역할인지 잘 모르겠음 - 나중에 다시 확인
+	//if (BindPoseMap.empty())
+	//{
+	//	auto it = FileData->InterpolationFrameMatrixList.find(m_strNodeName);
+	//	if (it != FileData->InterpolationFrameMatrixList.end())
+	//	{
+	//		Matrix matTranspose = it->second[InterpolationIdx].Transpose();
+	//		//ConstantBufferData_Bone CBData_Bone;
+	//		BPAnimData.Bone[0] = matTranspose;
+	//	}
+	//}
+	//else
 	{
-		auto it = FileData->InterpolationFrameMatrixList.find(m_strNodeName);
-		if (it != FileData->InterpolationFrameMatrixList.end())
+		size_t BoneIdx = 0;
+		for (auto &it : mesh.BindPoseMap)
 		{
-			Matrix matTranspose = it->second[InterpolationIdx].Transpose();
-			//ConstantBufferData_Bone CBData_Bone;
-			BPAnimData.Bone[0] = matTranspose;
-		}
-//	}
-//	else
-//	{
-//		size_t BoneIdx = 0;
-		for (auto &it : BindPoseMap)
-		{
-			auto AnimationTrack = FileData->InterpolationFrameMatrixList.find(it.first);
-			if (AnimationTrack == FileData->InterpolationFrameMatrixList.end())
+			auto AnimationTrack = InterpolationFrameMatrixList.find(it.first);
+			if (AnimationTrack == InterpolationFrameMatrixList.end())
 			{
-				BPAnimData.Bone[BoneIdx++] = it.second;
+				CurrentState.BPAnimData.Bone[BoneIdx++] = it.second;
 			}
 			else
 			{
 				Matrix MergedMatrix = it.second * AnimationTrack->second[InterpolationIdx];
-				BPAnimData.Bone[BoneIdx++] = MergedMatrix.Transpose();
+				CurrentState.BPAnimData.Bone[BoneIdx++] = MergedMatrix.Transpose();
 			}
 		}
 		
 	}
 
-//	return true;
+	return true;
 }

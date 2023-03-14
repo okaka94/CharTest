@@ -10,6 +10,7 @@
 #include "FBXLoader.hpp"
 // юс╫ц
 #include "AnimationComponent.h"
+#include "UpdateAnimSystem.h"
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -170,6 +171,7 @@ bool SampleCore::Initialize()
 	MainWorld.AddSystem(lightSystem);
 	MainWorld.AddSystem(new CameraSystem);
 	MainWorld.AddSystem(new RenderSystem);
+	MainWorld.AddSystem(new UpdateAnimSystem);
 
 	return true;
 }

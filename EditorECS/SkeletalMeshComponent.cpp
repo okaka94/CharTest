@@ -1,4 +1,5 @@
 #include "SkeletalMeshComponent.h"
+#include "AnimationComponent.h"
 
 SkeletalMeshComponent::SkeletalMeshComponent() 
 {
@@ -8,6 +9,15 @@ SkeletalMeshComponent::SkeletalMeshComponent()
 SkeletalMeshComponent::~SkeletalMeshComponent()
 {
 
+}
+
+// 본데이터 업데이트 -> 버퍼로 올리는 건 렌더 시스템에서
+bool SkeletalMeshComponent::UpdatePose(const AnimationComponent& anim)
+{
+	BoneData = anim.CurrentState.BPAnimData;
+
+
+	return true;
 }
 
 bool SkeletalMeshComponent::Render()
@@ -20,6 +30,10 @@ bool SkeletalMeshComponent::Render()
 	DXDevice::g_pImmediateContext->GSSetShader(GeometryShader, NULL, 0);
 	DXDevice::g_pImmediateContext->UpdateSubresource(TransformBuffer, 0, NULL, &TransformData, 0, 0);
 	DXDevice::g_pImmediateContext->VSSetConstantBuffers(0, 1, &TransformBuffer);
+
+	// BoneBuffer Update -> Set CB
+	DXDevice::g_pImmediateContext->UpdateSubresource(BoneBuffer, 0, NULL, &BoneData, 0, 0);
+	DXDevice::g_pImmediateContext->VSSetConstantBuffers(1, 1, &BoneBuffer);
 
 	DXDevice::g_pImmediateContext->PSSetConstantBuffers(4, 1, &TransformBuffer);
 
@@ -43,6 +57,7 @@ bool SkeletalMeshComponent::Initialize()
 	// VS 추가
 	VertexShader = DXShaderManager::GetInstance()->GetVertexShader(L"SkeletalMesh");
 	TransformBuffer = DXShaderManager::GetInstance()->CreateConstantBuffer<TransformMatrix>(TransformData);
+	BoneBuffer = DXShaderManager::GetInstance()->CreateConstantBuffer<BindPoseAnimationData>(BoneData);
 	isCreated = true;
 
 	return true;

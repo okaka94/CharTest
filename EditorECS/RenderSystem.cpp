@@ -29,9 +29,17 @@ void RenderSystem::Tick(ECS::World* world, float time)
 		}
 	}
 
-	for (auto& entity : world->GetEntities<SkeletalMeshComponent>())
+	// skeletal Ãß°¡
+	for (auto& entity : world->GetEntities<SkeletalMeshComponent, TransformComponent>())
 	{
 		auto skeletalMesh = entity->GetComponent<SkeletalMeshComponent>();
+		auto transform = entity->GetComponent<TransformComponent>();
+
+		if ((skeletalMesh != nullptr) && (transform != nullptr))
+		{
+			skeletalMesh->UpdateTransformMatrix(*transform);
+			skeletalMesh->Render();
+		}
 
 	}
 
@@ -83,4 +91,5 @@ void RenderSystem::Tick(ECS::World* world, float time)
 	{
 		pOldRSState->Release();
 	}
+
 }

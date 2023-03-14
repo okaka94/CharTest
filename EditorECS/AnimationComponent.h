@@ -1,5 +1,6 @@
 #pragma once
 #include "FBXObject.hpp"
+#include "SkeletalMeshComponent.h"
 
 struct AnimationState 
 {
@@ -25,7 +26,8 @@ public:
 	virtual ~AnimationComponent() {};
 
 public:
-	virtual bool Tick(float tick);
+	
+	virtual bool UpdateAnim(const SkeletalMeshComponent& mesh , float tick);
 	
 };
 
