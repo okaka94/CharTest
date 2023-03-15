@@ -120,6 +120,9 @@
     <ClCompile Include="MaterialManager.cpp">
       <Filter>DirectX\Material</Filter>
     </ClCompile>
+    <ClCompile Include="StaticMesh.cpp">
+      <Filter>DirectX\Mesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="GS_Landscape.hlsl">
