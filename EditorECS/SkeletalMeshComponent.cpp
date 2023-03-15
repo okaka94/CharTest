@@ -70,3 +70,32 @@ void SkeletalMeshComponent::UpdateTransformMatrix(const TransformComponent& tran
 	TransformData.InversedMat = DirectX::XMMatrixInverse(0, TransformData.Mat);
 	TransformData.Mat = TransformData.Mat.Transpose();
 }
+
+void SkeletalMeshComponent::UpdateCamera(Camera* camera, const TransformComponent& transform)
+{
+	if (camera == nullptr)
+	{
+		return;
+	}
+
+	DirectX::FXMVECTOR q = DirectX::XMQuaternionRotationRollPitchYawFromVector(Vector3(0.0f, 0.0f, 0.0f));
+	TransformData.Mat = DirectX::XMMatrixAffineTransformation(transform.Scale, Vector3(0.0f, 0.0f, 0.0f), q, Vector3(0.0f, 0.0f, 0.0f));
+	//TransformData.Mat = DirectX::XMMatrixAffineTransformation(transform.Scale, camera->Pos, q, camera->Pos);
+	TransformData.InversedMat = DirectX::XMMatrixInverse(0, TransformData.Mat);
+	TransformData.Mat = TransformData.Mat.Transpose();
+
+
+	CameraMatrixData.View = camera->View;
+	CameraMatrixData.View._41 = 0.0f;
+	CameraMatrixData.View._42 = 0.0f;
+	CameraMatrixData.View._43 = 0.0f;
+	CameraMatrixData.View = CameraMatrixData.View.Transpose();
+
+
+	//CameraMatrixData.Projection = DirectX::XMMatrixPerspectiveFovLH(PI * 0.25, 1.0f, 1.0f, 10000.0f);
+	CameraMatrixData.Projection = camera->Projection;
+	CameraMatrixData.Projection = CameraMatrixData.Projection.Transpose();
+
+	DXDevice::g_pImmediateContext->UpdateSubresource(CameraMatrixBuffer, 0, NULL, &CameraMatrixData, 0, 0);
+	DXDevice::g_pImmediateContext->VSSetConstantBuffers(1, 1, &CameraMatrixBuffer);
+}

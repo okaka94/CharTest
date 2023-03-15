@@ -17,7 +17,7 @@ struct VertexShader_input
 	float3 n : NORMAL;
 	float4 c : COLOR;
 	float2 t : TEXTURE;
-	float3 tangent : TANGENT;
+	//float3 tangent : TANGENT;
 	float4 index : INDEX;
 	float4 weight : WEIGHT;
 };
@@ -64,7 +64,7 @@ VertexShader_output VS(VertexShader_input input)
 		float fWeight = input.weight[iBone];
 		vAnimation += mul(vLocal, g_matBone[iBoneIndex]) * fWeight;
 		vAnimationNormal += mul(input.n, g_matBone[iBoneIndex]) * fWeight;
-		vAnimationTangent += mul(input.tangent, g_matBone[iBoneIndex]) * fWeight;
+		//vAnimationTangent += mul(input.tangent, g_matBone[iBoneIndex]) * fWeight;
 	}
 
 	float4 vWorld = mul(vAnimation, g_WorldTransform);

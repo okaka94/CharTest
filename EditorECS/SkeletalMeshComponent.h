@@ -7,6 +7,7 @@
 //#include "DXShaderManager.h"
 #include "TransformComponent.h"
 #include "FBXObject.hpp"
+#include "Camera.h"
 
 class AnimationComponent;
 
@@ -30,6 +31,8 @@ public:
 	ID3D11Buffer* TransformBuffer = nullptr;
 	TransformMatrix			TransformData;
 
+	ID3D11Buffer* CameraMatrixBuffer = nullptr;
+
 	bool isCreated = false;
 
 public:
@@ -41,4 +44,5 @@ public:
 public:
 	bool UpdatePose(const AnimationComponent& anim);
 	virtual void UpdateTransformMatrix(const TransformComponent& transform);
+	virtual void UpdateCamera(Camera* camera, const TransformComponent& transform);
 };
