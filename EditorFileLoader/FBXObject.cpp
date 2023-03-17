@@ -13,7 +13,7 @@
 //		m_AnimationInverse *= -1.0f;
 //	}
 //
-//	UINT InterpolationIdx = m_currentAnimationFrame * FileData->InterpolationSampling; ->100
+//	UINT InterpolationIdx = m_currentAnimationFrame * FileData->InterpolationSampling;
 //	
 //	if (BindPoseMap.empty())
 //	{
@@ -24,10 +24,10 @@
 //			//ConstantBufferData_Bone CBData_Bone;
 //			BPAnimData.Bone[0] = matTranspose;
 //		}
-////	}
-////	else
-////	{
-////		size_t BoneIdx = 0;
+//	}
+//	else
+//	{
+//		size_t BoneIdx = 0;
 //		for (auto &it : BindPoseMap)
 //		{
 //			auto AnimationTrack = FileData->InterpolationFrameMatrixList.find(it.first);

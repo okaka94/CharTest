@@ -29,8 +29,7 @@ void RenderSystem::Tick(ECS::World* world, float time)
 		}
 	}
 
-	// skeletal Ãß°¡
-	for (auto& entity : world->GetEntities<SkeletalMeshComponent, TransformComponent>())
+	for (auto& entity : world->GetEntities<SkeletalMeshComponent>())
 	{
 		auto skeletalMesh = entity->GetComponent<SkeletalMeshComponent>();
 		auto transform = entity->GetComponent<TransformComponent>();
@@ -61,18 +60,8 @@ void RenderSystem::Tick(ECS::World* world, float time)
 		mainCamera = ent->GetComponent<Camera>();
 	}
 
-	//DXDevice::g_pImmediateContext->OMSetDepthStencilState(nullptr, 0xff);
 	for (auto& entity : world->GetEntities<SkyBoxComponent>())
 	{
-		/*auto skyBox = entity->GetComponent<SkyBoxComponent>();
-		auto transform = entity->GetComponent<TransformComponent>();
-
-		if ((skyBox != nullptr) && (transform != nullptr))
-		{
-			skyBox->UpdateTransformMatrix(*transform);
-			skyBox->Render();
-		}*/
-
 		auto skyBox = entity->GetComponent<SkyBoxComponent>();
 		auto transform = entity->GetComponent<TransformComponent>();
 		if (mainCamera != nullptr)
@@ -91,5 +80,4 @@ void RenderSystem::Tick(ECS::World* world, float time)
 	{
 		pOldRSState->Release();
 	}
-
 }

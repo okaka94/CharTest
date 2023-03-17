@@ -85,13 +85,13 @@ bool SampleCore::Initialize()
 
 
 
-	// 5. 평면 메쉬 생성 후 머테리얼 세팅. 
-	PlaneComponent* plane = new PlaneComponent;
-	plane->SetMaterial(material);
-	plane->CalcTangent();
-
-	// 6. 스태틱 메쉬에 평면 메쉬 추가.
-	comp->Meshes.push_back(*plane);
+	//// 5. 평면 메쉬 생성 후 머테리얼 세팅. 
+	//PlaneComponent* plane = new PlaneComponent;
+	//plane->SetMaterial(material);
+	//plane->CalcTangent();
+	//
+	//// 6. 스태틱 메쉬에 평면 메쉬 추가.
+	//comp->Meshes.push_back(*plane);
 
 	// 7. 액터에 트랜스 폼 추가.
 	auto transformComp = actor->AddComponent<TransformComponent>();

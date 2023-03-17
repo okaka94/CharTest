@@ -8,6 +8,93 @@
 #include "DirectionalLight.h"
 #include "SkyBoxComponent.h"
 #include "FBXLoader.hpp"
+#include "Landscape.h"
+#include "SkeletalMeshComponent.h"
+#include "MaterialManager.h"
+#include "SkyRenderSystem.h"
+#include "SkyDomeComponent.h"
+//추가
+#include "AnimationComponent.h"
+#include "UpdateAnimSystem.h"
+
+struct CustomEvent
+{
+	int SomeNumber;
+	bool SomeBoolean;
+};
+
+struct TickEvent
+{
+	float fCurTime;
+};
+
+ECS_DEFINE_TYPE(SomeEvent);
+namespace ECS
+{
+	class TestSystem : public System,
+		public EventSubscriber<CommonEvents::OnEntityCreated>,
+		public EventSubscriber<CommonEvents::OnEntityDestroyed>,
+		//public EventSubscriber<CommonEvents::OnComponentAdded<TransformComponent>>,
+		public EventSubscriber<CustomEvent>,
+		public EventSubscriber<TickEvent>
+	{
+	public:
+		virtual ~TestSystem() {}
+
+		void init(World* world) override
+		{
+			world->subscribe<CommonEvents::OnEntityCreated>(this);
+			world->subscribe<CommonEvents::OnEntityDestroyed>(this);
+			//world->subscribe<CommonEvents::OnComponentAdded<TransformComponent>>(this);
+			world->subscribe<CustomEvent>(this);
+			world->subscribe<TickEvent>(this);
+		};
+
+		void release(World* world) override
+		{
+			world->unsubscribe<CommonEvents::OnEntityCreated>(this);
+			world->unsubscribe<CommonEvents::OnEntityDestroyed>(this);
+			//world->subscribe<CommonEvents::OnComponentAdded<TransformComponent>>(this);
+			world->unsubscribe<CustomEvent>(this);
+			world->unsubscribe<TickEvent>(this);
+		}
+
+		virtual void Tick(World* world, float deltaTime) override
+		{
+			world->emit<TickEvent>({ Singleton<Timer>::GetInstance()->GetPlayTime() });
+		}
+
+		virtual void receive(class World* world, const CommonEvents::OnEntityCreated& event) override
+		{
+			OutputDebugString(L"Entity 생성 \n");
+		}
+
+		virtual void receive(class World* world, const CommonEvents::OnEntityDestroyed& event) override
+		{
+			OutputDebugString(L"Entity 파괴 \n");
+		}
+
+		/*virtual void receive(class World* world, const CommonEvents::OnComponentAdded<TransformComponent>& event) override
+		{
+			OutputDebugString(L"A Transform component was removed!");
+		}*/
+
+		virtual void receive(class World* world, const CustomEvent& event) override
+		{
+			OutputDebugString(L"Custom Event Value : ");
+			OutputDebugString(L"\n");
+			OutputDebugString((L"Int Param : " + std::to_wstring(event.SomeNumber)).c_str());
+			OutputDebugString(L"\n");
+			OutputDebugString((L"Boolean Param : " + std::to_wstring(event.SomeBoolean)).c_str());
+			OutputDebugString(L"\n");
+		}
+
+		virtual void receive(class World* world, const TickEvent& event) override
+		{
+			OutputDebugString((std::to_wstring(event.fCurTime) + L" : DEBUG_TICK_EVENT\n").c_str());
+		}
+	};
+}
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -50,57 +137,73 @@ bool SampleCore::Initialize()
 	FBXLoader::GetInstance()->Initialize();
 
 
-	// 1. Actor 생성
-	Actor* actor = new Actor;
+	//테스트 시스템 추가
+	ECS::TestSystem* test = new ECS::TestSystem;
+	MainWorld.AddSystem(test);
 
-	// 2. Static Mesh Component 추가.
-	auto comp = actor->AddComponent<StaticMeshComponent>();
-
-	// 3. Material 생성
-	Material* material = new Material;
-
-	// 4. 텍스쳐 로드 및 머테리얼에 추가.
-	DXTexture* texture = nullptr;
-	if (DXTextureManager::GetInstance()->Load(L"../resource/Default.bmp"))
-	{
-		texture = DXTextureManager::GetInstance()->GetTexture(L"../resource/Default.bmp");
-	}
-	if (texture != nullptr)
-	{
-		material->SetDiffuseTexture(texture);
-	}
-
-	DXTexture* normalMaptexture = nullptr;
-	if (DXTextureManager::GetInstance()->Load(L"../resource/NormalMap/normal1.bmp"))
-	{
-		normalMaptexture = DXTextureManager::GetInstance()->GetTexture(L"../resource/NormalMap/normal1.bmp");
-	}
-	if (normalMaptexture != nullptr)
-	{
-		material->SetNormalTexture(normalMaptexture);
-	}
+	//MainWorld.RemoveSystem(test);
 
 
 
-	// 5. 평면 메쉬 생성 후 머테리얼 세팅. 
-	PlaneComponent* plane = new PlaneComponent;
-	plane->SetMaterial(material);
-	plane->CalcTangent();
+	//// 1. Actor 생성
+	//Actor* actor = new Actor;
 
-	// 6. 스태틱 메쉬에 평면 메쉬 추가.
-	comp->Meshes.push_back(*plane);
+	//// 2. Static Mesh Component 추가.
+	//auto comp = actor->AddComponent<StaticMeshComponent>();
 
-	// 7. 액터에 트랜스 폼 추가.
-	auto transformComp = actor->AddComponent<TransformComponent>();
-	transformComp->Translation = Vector3(0.0f, 0.0, 100.0f);
-	//transformComp->Rotation = Vector3(0.0f, 3.14f / 4.0f, 0.0f);
-	transformComp->Rotation = Vector3(0.0f, 0.0f, 0.0f);
-	transformComp->Scale = Vector3(20.0f, 20.0f, 1.0f);
+	//// 3. Material 생성
+	//Material* material = new Material;
+
+	//// 4. 텍스쳐 로드 및 머테리얼에 추가.
+	//DXTexture* texture = nullptr;
+	//if (DXTextureManager::GetInstance()->Load(L"../resource/Default.bmp"))
+	//{
+	//	texture = DXTextureManager::GetInstance()->GetTexture(L"../resource/Default.bmp");
+	//}
+	//if (texture != nullptr)
+	//{
+	//	material->SetDiffuseTexture(texture);
+	//}
+
+	//DXTexture* normalMaptexture = nullptr;
+	//if (DXTextureManager::GetInstance()->Load(L"../resource/NormalMap/normal1.bmp"))
+	//{
+	//	normalMaptexture = DXTextureManager::GetInstance()->GetTexture(L"../resource/NormalMap/normal1.bmp");
+	//}
+	//if (normalMaptexture != nullptr)
+	//{
+	//	material->SetNormalTexture(normalMaptexture);
+	//}
+
+	//material->SetPixelShader(DXShaderManager::GetInstance()->GetPixelShader(L"NormalMap"));
+
+	//// 5. 평면 메쉬 생성 후 머테리얼 세팅. 
+	//PlaneComponent* plane = new PlaneComponent;
+	//plane->SetMaterial(material);
+	//plane->CalcTangent();
+
+	//// 6. 스태틱 메쉬에 평면 메쉬 추가.
+	//comp->Meshes.push_back(*plane);
+
+	//// 7. 액터에 트랜스 폼 추가.
+	//auto transformComp = actor->AddComponent<TransformComponent>();
+	//transformComp->Translation = Vector3(0.0f, 0.0, 100.0f);
+	////transformComp->Rotation = Vector3(0.0f, 3.14f / 4.0f, 0.0f);
+	//transformComp->Rotation = Vector3(0.0f, 0.0f, 0.0f);
+	//transformComp->Scale = Vector3(20.0f, 20.0f, 1.0f);
+
+	////<커스텀 이벤트 테스트>
+	////---------------------------------------------
+
+	//MainWorld.emit<CustomEvent>({856, FALSE});
+
+	////---------------------------------------------
+
 
 	// 8. 액터에 카메라 추가.
 	Actor* cameraActor = new Actor;
 	DebugCamera = cameraActor->AddComponent<Camera>();
-	DebugCamera->CreateViewMatrix(Vector3(0.0f, 0.0f, -100.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0, 0.0f));
+	DebugCamera->CreateViewMatrix(Vector3(0.0f, 5.0f, -100.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0, 0.0f));
 	DebugCamera->CreateProjectionMatrix(1.0f, 10000.0f, PI * 0.25, (DXDevice::g_ViewPort.Width) / (DXDevice::g_ViewPort.Height));
 
 	// Sky Box
@@ -143,30 +246,91 @@ bool SampleCore::Initialize()
 	
 
 
-	// Fbx Loader Test
+	// Fbx Loader Test ---->>>>>>> 애니메이션 컴포넌트 추가 & 기본 메시 크기 너무 작아서 스케일 적용
 	Actor* fbxActor = new Actor;
-	auto fbxMeshComp = fbxActor->AddComponent<StaticMeshComponent>();
-	FBXLoader::GetInstance()->Load(L"../resource/FBX/charMob.FBX", fbxMeshComp);
+	auto fbxMeshComp = fbxActor->AddComponent<SkeletalMeshComponent>();
+	if (FBXLoader::GetInstance()->Load(L"../resource/FBX/Hulk_fbx/hulk_removeTwist.FBX"))
+	{
+		//FBXLoader::GetInstance()->GenerateStaticMeshFromFileData(L"../resource/FBX/charMob.FBX", fbxMeshComp);
+		FBXLoader::GetInstance()->GenerateSkeletalMeshFromFileData(L"../resource/FBX/Hulk_fbx/hulk_removeTwist.FBX", fbxMeshComp);
+	}
+	auto fbxAnimComp = fbxActor->AddComponent<AnimationComponent>();
+	if (FBXLoader::GetInstance()->Load(L"../resource/FBX/Hulk_fbx/Mutant_Punch_Retargeted.FBX"))
+	{
+		FBXLoader::GetInstance()->GenerateAnimationFromFileData(L"../resource/FBX/Hulk_fbx/Mutant_Punch_Retargeted.FBX", fbxAnimComp);
+	}
+	auto fbxTransformComp = fbxActor->GetComponent<TransformComponent>();
+	fbxTransformComp->Scale = Vector3(10.f, 10.f, 10.f);
+
 	MainWorld.AddEntity(fbxActor);
+
+	//Actor* landscapeActor = new Actor;
+	//auto landscape = landscapeActor->AddComponent<Landscape>();
+	//landscape->Build(8, 8, 7);
+	//landscape->SetCamera(DebugCamera);
+	//MainWorld.AddEntity(landscapeActor);
+
+	/*Actor* skySphereActor = new Actor;
+	auto skySphereComp = skySphereActor->AddComponent<StaticMeshComponent>();
+	if (FBXLoader::GetInstance()->Load(L"../resource/FBX/SkySphere.fbx"))
+	{
+		FBXLoader::GetInstance()->GenerateStaticMeshFromFileData(L"../resource/FBX/SkySphere.fbx", skySphereComp);
+	}
+	MainWorld.AddEntity(skySphereActor);
+	auto skySphereTransform = skySphereActor->GetComponent<TransformComponent>();
+	skySphereTransform->Scale = Vector3(20.0f, 20.0f, 20.0f);*/
+
+
+	/*Actor* skyDomeActor = new Actor;
+	auto skyDomeComp = skyDomeActor->AddComponent<StaticMeshComponent>();
+	if (FBXLoader::GetInstance()->Load(L"../resource/FBX/CloudDome.fbx"))
+	{
+		FBXLoader::GetInstance()->GenerateStaticMeshFromFileData(L"../resource/FBX/CloudDome.fbx", skyDomeComp);
+	}
+	Material* skyDomeMaterial = new Material;
+	skyDomeMaterial->PixelShaderCodeName = L"T_UI";
+	skyDomeMaterial->DiffuseTextureName = L"../resource/FBX/CloudSky2.png";
+	MaterialManager::GetInstance()->AddMaterial(L"SkyDome", skyDomeMaterial);
+	for (auto& mesh : skyDomeComp->Meshes)
+	{
+		mesh.MaterialSlot = skyDomeMaterial;
+	}
+	MainWorld.AddEntity(skyDomeActor);
+	auto skyDomeTransform = skyDomeActor->GetComponent<TransformComponent>();
+	skyDomeTransform->Scale = Vector3(10.0f, 10.0f, 10.0f);*/
+
+	//Actor* skyDomeActor = new Actor;
+	//auto skyDomeComp = skyDomeActor->AddComponent<SkyDomeComponent>();
+	//MainWorld.AddEntity(skyDomeActor);
+	//MainWorld.AddSystem(new SkyRenderSystem);
 
 
 	// 9. 메인 월드에 액터 추가.
-	MainWorld.AddEntity(actor);
+	//MainWorld.AddEntity(actor);
 	MainWorld.AddEntity(cameraActor);
-	MainWorld.AddEntity(skyActor);
+	//MainWorld.AddEntity(skyActor);
 
 	DirectionalLight* light = new DirectionalLight;
 	auto lightComp = light->GetComponent<DirectionalLightComponent>();
 	lightComp->Color = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-	lightComp->Direction = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+	lightComp->Direction = Vector4(1.0f, -1.0f, 1.0f, 1.0f);
 	MainWorld.AddEntity(light);
 
-	// 10. 카메라 시스템 및 랜더링 시스템 추가.
+	DirectionalLight* light2 = new DirectionalLight;
+	auto lightComp2 = light2->GetComponent<DirectionalLightComponent>();
+	lightComp2->Color = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+	lightComp2->Direction = Vector4(0.0f, -1.0f, 1.0f, 1.0f);
+	MainWorld.AddEntity(light2);
+
+	// 10. 카메라 시스템 및 랜더링 시스템 추가. 
 	LightSystem* lightSystem = new LightSystem;
 	lightSystem->Initialize();
 	MainWorld.AddSystem(lightSystem);
 	MainWorld.AddSystem(new CameraSystem);
 	MainWorld.AddSystem(new RenderSystem);
+
+	// 추가
+	MainWorld.AddSystem(new UpdateAnimSystem);
 
 	return true;
 }

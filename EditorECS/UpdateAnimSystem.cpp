@@ -12,10 +12,7 @@ void UpdateAnimSystem::Tick(ECS::World* world, float time)
 
 		if ((skeletalMesh != nullptr) && (animation != nullptr))
 		{
-			// BPAnim 업데이트
-			animation->UpdateAnim(*skeletalMesh, time);
-			// Bone 상수 버퍼 업데이트 해주기
-			skeletalMesh->UpdatePose(*animation);
+			animation->UpdateAnim(skeletalMesh, time);
 		}
 	}
 }

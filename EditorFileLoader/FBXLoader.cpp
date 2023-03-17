@@ -1,7 +1,4 @@
 #include "FBXLoader.hpp"
-#include "AnimationComponent.h"
-#include "SkeletalMeshComponent.h"
-//추가
 #include "MaterialManager.h"
 
 bool FBXLoader::Initialize()
@@ -42,126 +39,16 @@ bool FBXLoader::Release()
 	return true;
 }
 
-bool FBXLoader::LoadDir(std::wstring _path)
+bool FBXLoader::Load(std::wstring filename)
 {
-	SetResourceDirectory(_path);
-	std::filesystem::path path(_path);
-	for (auto& file : std::filesystem::directory_iterator(path))
+	auto it = FbxFileList.find(filename);
+	if (it != FbxFileList.end())
 	{
-		std::wstring filename = file.path().filename();
-		std::wstring filepath = file.path();
-		std::wstring fileExtension = file.path().extension();
-
-		if (fileExtension == L"")
-		{
-			std::wstring dir = filepath + L"/";
-			LoadDir(dir);
-		}
-		else
-		{
-			if ((fileExtension == L".FBX") || (fileExtension == L".fbx"))
-			{
-				/*auto it = m_ObjectMap.find(filename);
-				if (it != m_ObjectMap.end())
-				{
-					continue;
-				}
-
-				std::unique_ptr<FBXObject> Object = std::make_unique<FBXObject>();
-				if (Load(filepath, Object.get()))
-				{
-					m_ObjectMap.insert(std::make_pair(filename, std::move(Object)));
-				}*/
-
-				auto it = m_StaticMeshMap.find(filename);
-				if (it != m_StaticMeshMap.end())
-				{
-					continue;
-				}
-
-				std::unique_ptr<StaticMeshComponent> staticMesh = std::make_unique<StaticMeshComponent>();
-				if (Load(filepath, staticMesh.get()))
-				{
-					KeyStringList.push_back(filename);
-					m_StaticMeshMap.insert(std::make_pair(filename, std::move(staticMesh)));
-				}
-
-			}
-			else
-			{
-				continue;
-			}
-		}
+		return true;
 	}
 
-	return true;
-}
-
-//bool FBXLoader::Load(std::wstring _path, FBXObject* _dst)
-//{
-//	std::string strPath;
-//	strPath.assign(_path.begin(), _path.end());
-//	const char* path = strPath.c_str();
-//
-//	if (!m_pImporter->Initialize(path))
-//	{
-//		OutputDebugString(L"FBXLoader::Load::Failed Initialize Importer.\n");
-//		return false;
-//	}
-//
-//	// 기본적으로 디자인 파일들은 Scene 단위로 저장됨.
-//	// Scene은 트리 구조로 이루어져 있어 Root부터 시작되며 보통 Root는 NULL로 이루어져있음.
-//	// 따라서 파일 마다 새로 생성해서 로드 해줄 필요가 있음.
-//
-//	FbxScene* pScene = FbxScene::Create(m_pManager, "");
-//	if (pScene == nullptr)
-//	{
-//		OutputDebugString(L"FBXLoader::Load::Failed Create Scene.\n");
-//		return false;
-//	}
-//
-//	if (!m_pImporter->Import(pScene))
-//	{
-//		OutputDebugString(L"FBXLoader::Load::Failed Import Scene.\n");
-//		return false;
-//	}
-//
-//	FBXFileData fbxFile;
-//	if (!ParseScene(pScene, &fbxFile))
-//	{
-//		OutputDebugString(L"FBXLoader::Load::Failed Parse Scene.\n");
-//		return false;
-//	}
-//
-//	FbxNode* pRoot = pScene->GetRootNode();
-//	if (!ParseNode(pRoot, &fbxFile))
-//	{
-//		OutputDebugString(L"FBXLoader::Load::Failed Parse Root Node.\n");
-//		return false;
-//	}
-//
-//	if (!PreProcess(&fbxFile))
-//	{
-//		OutputDebugString(L"FBXLoader::Load::Failed Pre Process.\n");
-//		return false;
-//	}
-//
-//	/*if (!GenerateObjectFromFileData(&fbxFile, _dst))
-//	{
-//		OutputDebugString(L"FBXLoader::Load::Failed Generate FBX Object.\n");
-//		return false;
-//	}*/
-//
-//	pRoot->Destroy();
-//	pScene->Destroy();
-//
-//	return true;
-//}
-
-bool FBXLoader::Load(std::wstring _path, StaticMeshComponent* _dst)
-{
 	std::string strPath;
-	strPath.assign(_path.begin(), _path.end());
+	strPath.assign(filename.begin(), filename.end());
 	const char* path = strPath.c_str();
 
 	if (!m_pImporter->Initialize(path))
@@ -187,31 +74,30 @@ bool FBXLoader::Load(std::wstring _path, StaticMeshComponent* _dst)
 		return false;
 	}
 
-	FBXFileData fbxFile;
-	if (!ParseScene(pScene, &fbxFile))
+	FBXFileData* fbxFile = new FBXFileData;
+	std::filesystem::path filepath(filename);
+	fbxFile->FilePath = filepath.parent_path();
+	fbxFile->FilePath += L"/";
+	if (!ParseScene(pScene, fbxFile))
 	{
 		OutputDebugString(L"FBXLoader::Load::Failed Parse Scene.\n");
 		return false;
 	}
 
 	FbxNode* pRoot = pScene->GetRootNode();
-	if (!ParseNode(pRoot, &fbxFile))
+	if (!ParseNode(pRoot, fbxFile))
 	{
 		OutputDebugString(L"FBXLoader::Load::Failed Parse Root Node.\n");
 		return false;
 	}
 
-	if (!PreProcess(&fbxFile))
+	if (!PreProcess(fbxFile))
 	{
 		OutputDebugString(L"FBXLoader::Load::Failed Pre Process.\n");
 		return false;
 	}
 
-	if (!GenerateStaticMeshFromFileData(&fbxFile, _dst))
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Generate FBX Object.\n");
-		return false;
-	}
+	FbxFileList.insert(std::make_pair(filename, fbxFile));
 
 	pRoot->Destroy();
 	pScene->Destroy();
@@ -359,13 +245,13 @@ bool FBXLoader::ParseNode(FbxNode* node, FBXFileData* dst)
 			{
 				isValid = true;
 				//FbxMesh* pMesh = _node->GetMesh();
-				NodeData.Mesh = node->GetMesh();
-				if (NodeData.Mesh != nullptr)
+				NodeData.FMesh = node->GetMesh();
+				if (NodeData.FMesh != nullptr)
 				{
 					// Mesh: 랜더 가능한 데이터
 					// Scene graph 형식(트리에 모든 정보를 다 넣어서 저장 후 사용 및 랜더링하는 방식) 이라고 부름.
 					//ParseMesh(pMesh, _dst);
-					dst->MeshList.push_back(NodeData.Mesh);
+					dst->MeshList.push_back(NodeData.FMesh);
 				}
 				break;
 			}
@@ -425,6 +311,7 @@ bool FBXLoader::ParseNode(FbxNode* node, FBXFileData* dst)
 			{
 				material->EmissiveTextureName = dst->FilePath + material->EmissiveTextureName;
 			}
+
 			std::wstring materialName;
 			materialName.assign(NodeData.Name.begin(), NodeData.Name.end());
 			MaterialManager::GetInstance()->AddMaterial(materialName, material);
@@ -469,7 +356,7 @@ bool FBXLoader::PreProcess(FBXFileData* dst)
 
 		}
 
-		if (!ParseMesh(it.Mesh, dst, &it))
+		if (!ParseMesh(it.FMesh, dst, &it))
 		{
 
 		}
@@ -497,7 +384,7 @@ bool FBXLoader::ParseMesh(FbxMesh* mesh, FBXFileData* dst, FBXNodeData* dstData)
 
 	if (ParseMeshSkinning(mesh, dst , dstData))
 	{
-		dst->hasSkeletal = true;
+		
 	}
 
 	// Layer 개념 필요. 여러번에 걸쳐 동일한 곳에 랜더링 하는것 == 멀티 패스 랜더링. 텍스쳐로 치환하면 멀티 텍스처 랜더링.
@@ -654,7 +541,7 @@ bool FBXLoader::ParseMesh(FbxMesh* mesh, FBXFileData* dst, FBXNodeData* dstData)
 				}
 
 				//VertexList[MaterialIdx].push_back(Vertex(pos, normal, color, texture));
-				if (dst->BindPoseMap.empty())
+				if (dstData->BindPoseMap.empty())
 				{
 					//_dstData->Materials[MaterialIdx].push_back(Vertex(pos, normal, color, texture));
 					dstData->MeshList[MaterialIdx].Vertices.push_back(Vertex(pos, normal, color, texture, tangent));
@@ -675,22 +562,22 @@ bool FBXLoader::ParseMesh(FbxMesh* mesh, FBXFileData* dst, FBXNodeData* dstData)
 						{
 							if (SkinWeightIdx == 0)
 							{
-								IWDatas.Index.x = dst->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
+								IWDatas.Index.x = dstData->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
 								IWDatas.Weight.x = SkinWeightList[SkinWeightIdx].weight;
 							}
 							if (SkinWeightIdx == 1)
 							{
-								IWDatas.Index.y = dst->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
+								IWDatas.Index.y = dstData->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
 								IWDatas.Weight.y = SkinWeightList[SkinWeightIdx].weight;
 							}
 							if (SkinWeightIdx == 2)
 							{
-								IWDatas.Index.z = dst->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
+								IWDatas.Index.z = dstData->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
 								IWDatas.Weight.z = SkinWeightList[SkinWeightIdx].weight;
 							}
 							if (SkinWeightIdx == 3)
 							{
-								IWDatas.Index.w = dst->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
+								IWDatas.Index.w = dstData->BindPoseKeyToIndexMap.find(SkinWeightList[SkinWeightIdx].BoneName)->second;
 								IWDatas.Weight.w = SkinWeightList[SkinWeightIdx].weight;
 							}
 							
@@ -833,16 +720,16 @@ bool FBXLoader::ParseMeshSkinning(FbxMesh* mesh, FBXFileData* dst, FBXNodeData* 
 			FbxAMatrix matInversedBindPose = matRefGlobalInitPosition.Inverse() * matXBindPose; // 전역 행렬이 곱해진 후 바인드 포즈가 곱해진 것이 애니메이션
 			matInversedBindPose = matInversedBindPose.Inverse(); // 따라서 역행렬로 만들어 주어서 정점에 곱해 주어야 뼈대의 로컬 행렬로 변환 가능하다.
 			Matrix matInvBindPose = ConvertToDxMatrix(matInversedBindPose); // 정점과 곱한 후 VertexBuffer에 넣고 월드 행렬과 곱해줘도 되고, VertexBuffer는 냅두고 월드 행렬 앞에 곱해도 됨.
-			dst->BindPoseMap.insert(std::make_pair(LinkedNodeName, matInvBindPose)); // 상수 버퍼 적용 전에 곱해 주고
-			//dstData->BindPoseMap.insert(std::make_pair(LinkedNodeName, matInvBindPose)); // 상수 버퍼 적용 전에 곱해 주고
+			//_dst->BindPoseMap.insert(std::make_pair(BoneIndex, matInvBindPose)); // 상수 버퍼 적용 전에 곱해 주고
+			dstData->BindPoseMap.insert(std::make_pair(LinkedNodeName, matInvBindPose)); // 상수 버퍼 적용 전에 곱해 주고
 		}
 		
 	}
 
 	int BindPoseIdx = 0;
-	for (auto it : dst->BindPoseMap)
+	for (auto it : dstData->BindPoseMap)
 	{
-		dst->BindPoseKeyToIndexMap.insert(std::make_pair(it.first, BindPoseIdx++));
+		dstData->BindPoseKeyToIndexMap.insert(std::make_pair(it.first, BindPoseIdx++));
 	}
 
 	return true;
@@ -1533,14 +1420,15 @@ bool FBXLoader::GenerateAnimationTrack(FBXFileData* data, float sampling)
 	return true;
 }
 
-bool FBXLoader::GenerateStaticMeshFromFileData(FBXFileData* _src, StaticMeshComponent* _dst)
+bool FBXLoader::GenerateStaticMeshFromFileData(std::wstring filename, StaticMeshComponent* dst)
 {
-	if (_src == nullptr)
+	auto it = FbxFileList.find(filename);
+	if (it == FbxFileList.end())
 	{
 		return false;
 	}
-
-	FBXFileData* pData = _src;
+		
+	FBXFileData* pData = it->second;
 	for (auto& node : pData->NodeDataList)
 	{
 		if (node.AttributeType != FbxNodeAttribute::EType::eMesh)
@@ -1553,128 +1441,7 @@ bool FBXLoader::GenerateStaticMeshFromFileData(FBXFileData* _src, StaticMeshComp
 			{
 				continue;
 			}
-
-			size_t meshCnt = node.MeshList.size();
-			for (size_t idx = 0; idx < meshCnt; idx++)
-			{
-				if (node.MaterialList.empty())
-				{
-					node.MeshList[idx].MaterialSlot = nullptr;
-				}
-				else
-				{
-					node.MeshList[idx].MaterialSlot = node.MaterialList[idx];
-				}
-			
-				_dst->Meshes.push_back(node.MeshList[idx]);				
-			}
-			
-		}
-	}
-
-	return true;
-}
-
-
-////////////////////////////////////////////////////////////
-///////////// 캐릭터 로드를 위한 오버로딩 //////////////////
-////////////////////////////////////////////////////////////
-bool FBXLoader::Load(std::wstring _path, SkeletalMeshComponent* _mesh, AnimationComponent* _anim)
-{
-	std::string strPath;
-	strPath.assign(_path.begin(), _path.end());
-	const char* path = strPath.c_str();
-
-	if (!m_pImporter->Initialize(path))
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Initialize Importer.\n");
-		return false;
-	}
-
-	// 기본적으로 디자인 파일들은 Scene 단위로 저장됨.
-	// Scene은 트리 구조로 이루어져 있어 Root부터 시작되며 보통 Root는 NULL로 이루어져있음.
-	// 따라서 파일 마다 새로 생성해서 로드 해줄 필요가 있음.
-
-	FbxScene* pScene = FbxScene::Create(m_pManager, "");
-	if (pScene == nullptr)
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Create Scene.\n");
-		return false;
-	}
-
-	if (!m_pImporter->Import(pScene))
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Import Scene.\n");
-		return false;
-	}
-
-	FBXFileData fbxFile;
-	std::filesystem::path filepath(_path);
-	fbxFile.FilePath = filepath.parent_path();
-	fbxFile.FilePath += L"/";
-	if (!ParseScene(pScene, &fbxFile))
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Parse Scene.\n");
-		return false;
-	}
-
-	FbxNode* pRoot = pScene->GetRootNode();
-	if (!ParseNode(pRoot, &fbxFile))
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Parse Root Node.\n");
-		return false;
-	}
-
-	if (!PreProcess(&fbxFile))
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Pre Process.\n");
-		return false;
-	}
-
-	if (!GenerateSkeletalMeshFromFileData(&fbxFile, _mesh))
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Generate Skeletal Mesh Component.\n");
-		return false;
-	}
-
-	if (!GenerateAnimationFromFileData(&fbxFile, _anim))
-	{
-		OutputDebugString(L"FBXLoader::Load::Failed Generate Animation Component.\n");
-		return false;
-	}
-
-	pRoot->Destroy();
-	pScene->Destroy();
-
-	return true;
-}
-
-
-bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMeshComponent* _mesh)
-{
-	if (_src == nullptr)
-	{
-		return false;
-	}
-
-	_mesh->BindPoseMap = _src->BindPoseMap;
-	_mesh->BindPoseKeyToIndexMap = _src->BindPoseKeyToIndexMap;
-
-	FBXFileData* pData = _src;
-	for (auto& node : pData->NodeDataList)
-	{
-		if (node.AttributeType != FbxNodeAttribute::EType::eMesh)
-		{
-			continue;
-		}
-		else
-		{
-			// 노드 데이터의 메시 정보 -> 스켈레탈메시 컴포넌트의 Meshes에 담기
-			if (node.MeshList.empty())
-			{
-				continue;
-			}
-
+		
 			size_t meshCnt = node.MeshList.size();
 			for (size_t idx = 0; idx < meshCnt; idx++)
 			{
@@ -1689,34 +1456,138 @@ bool FBXLoader::GenerateSkeletalMeshFromFileData(FBXFileData* _src, SkeletalMesh
 					node.MeshList[idx].MaterialSlot = MaterialManager::GetInstance()->GetMaterial(materialName);
 				}
 				
-				_mesh->Meshes.push_back(node.MeshList[idx]);
+				dst->Meshes.push_back(node.MeshList[idx]);				
 			}
-			
-
+					
 		}
+	}
+		
+	for (auto& it : dst->Meshes)
+	{
+		it.Initialize();
 	}
 
 	return true;
 }
 
-bool FBXLoader::GenerateAnimationFromFileData(FBXFileData* _src, AnimationComponent* _anim)
+bool FBXLoader::GenerateSkeletalMeshFromFileData(std::wstring filename, SkeletalMeshComponent* dst)
 {
-	if (_src == nullptr)
+	auto it = FbxFileList.find(filename);
+	if (it == FbxFileList.end())
 	{
 		return false;
 	}
 
-	FBXFileData* pData = _src;
+	FBXFileData* pData = it->second;
+	// Root Node Name 할당(?)
+	dst->Name = pData->NodeNameList.front();
 
+	////////
 	for (auto& node : pData->NodeDataList)
 	{
-		
+		if (node.AttributeType != FbxNodeAttribute::EType::eMesh)
+		{
+			continue;
+		}
+		else
+		{
+			if (node.MeshList.empty())
+			{
+				continue;
+			}
+
+			size_t meshCnt = node.MeshList.size();
+			// 싱글메시라고 가정하고/////////
+			dst->BindPoseMap = node.BindPoseMap;
+			dst->BindPoseKeyToIndexMap = node.BindPoseKeyToIndexMap;
+
+			///////////////
+			for (size_t idx = 0; idx < meshCnt; idx++)
+			{
+				if (node.MaterialList.empty())
+				{
+					node.MeshList[idx].MaterialSlot = MaterialManager::GetInstance()->GetMaterial(L"Default");
+				}
+				else
+				{
+					std::wstring materialName;
+					materialName.assign(node.Name.begin(), node.Name.end());
+					node.MeshList[idx].MaterialSlot = MaterialManager::GetInstance()->GetMaterial(materialName);
+				}
+
+				dst->Meshes.push_back(node.MeshList[idx]);
+			}
+
+		}
 	}
-	_anim->AnimationSceneInfo = _src->AnimationSceneInfo;
-	_anim->InterpolationFrameMatrixList = _src->InterpolationFrameMatrixList;
-	
 
-
+	for (auto& it : dst->Meshes)
+	{
+		it.Initialize();
+	}
 
 	return true;
 }
+
+bool FBXLoader::GenerateAnimationFromFileData(std::wstring filename, AnimationComponent* dst)
+{
+	auto it = FbxFileList.find(filename);
+	if (it == FbxFileList.end())
+	{
+		return false;
+	}
+
+	FBXFileData* pData = it->second;
+	dst->FileName = filename;
+	dst->StartFrame = pData->AnimationSceneInfo.StartFrame;
+	dst->EndFrame = pData->AnimationSceneInfo.EndFrame;
+	dst->TickPerFrame = pData->AnimationSceneInfo.TickPerFrame;
+	dst->FrameSpeed = pData->AnimationSceneInfo.FrameSpeed;
+	dst->LerpFrameMatrixList = pData->InterpolationFrameMatrixList;
+
+	return true;
+}
+
+
+//
+//bool FBXLoader::GenerateStaticMeshFromFileData(FBXFileData* _src, StaticMeshComponent* _dst)
+//{
+//	if (_src == nullptr)
+//	{
+//		return false;
+//	}
+//
+//	FBXFileData* pData = _src;
+//	for (auto& node : pData->NodeDataList)
+//	{
+//		if (node.AttributeType != FbxNodeAttribute::EType::eMesh)
+//		{
+//			continue;
+//		}
+//		else
+//		{
+//			if (node.MeshList.empty())
+//			{
+//				continue;
+//			}
+//
+//			size_t meshCnt = node.MeshList.size();
+//			for (size_t idx = 0; idx < meshCnt; idx++)
+//			{
+//				if (node.MaterialList.empty())
+//				{
+//					node.MeshList[idx].MaterialSlot = nullptr;
+//				}
+//				else
+//				{
+//					node.MeshList[idx].MaterialSlot = node.MaterialList[idx];
+//				}
+//			
+//				_dst->Meshes.push_back(node.MeshList[idx]);				
+//			}
+//			
+//		}
+//	}
+//
+//	return true;
+//}

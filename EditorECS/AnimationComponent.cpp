@@ -1,43 +1,48 @@
 #include "AnimationComponent.h"
 
-bool AnimationComponent::UpdateAnim(const SkeletalMeshComponent& mesh, float tick)
+/**
+	 * @brief 기존 FbxObj의 Frame() 함수를 기반으로 구성
+	 * @param[in] mesh SkeletalMeshComponent 포인터
+	 * @param[in] tick 틱
+	*/
+bool AnimationComponent::UpdateAnim(SkeletalMeshComponent* mesh, float tick)
 {
-	CurrentState.m_currentAnimationFrame += (tick * AnimationSceneInfo.FrameSpeed * CurrentState.m_AnimationInverse);
-	if ((CurrentState.m_currentAnimationFrame > AnimationSceneInfo.EndFrame ) ||
-		(CurrentState.m_currentAnimationFrame < AnimationSceneInfo.StartFrame))
+	m_currentAnimationFrame += (tick * FrameSpeed * m_AnimationInverse);
+	if ((m_currentAnimationFrame > EndFrame ) ||
+		(m_currentAnimationFrame < StartFrame))
 	{
-		CurrentState.m_currentAnimationFrame = min(CurrentState.m_currentAnimationFrame, AnimationSceneInfo.EndFrame);
-		CurrentState.m_currentAnimationFrame = max(CurrentState.m_currentAnimationFrame, AnimationSceneInfo.StartFrame);
-		CurrentState.m_AnimationInverse *= -1.0f;
+		m_currentAnimationFrame = min(m_currentAnimationFrame, EndFrame);
+		m_currentAnimationFrame = max(m_currentAnimationFrame, StartFrame);
+		m_AnimationInverse *= -1.0f;
 	}
 
-	UINT InterpolationIdx = CurrentState.m_currentAnimationFrame * 100; // InterpolationSampling 일단 100 고정
+	UINT InterpolationIdx = m_currentAnimationFrame * 100; // InterpolationSampling 일단 100 고정
 	
-	// 스켈레탈이면 바인드포즈 맵 이미 있다고 가정하고..? 무슨 역할인지 잘 모르겠음 - 나중에 다시 확인
-	//if (BindPoseMap.empty())
-	//{
-	//	auto it = FileData->InterpolationFrameMatrixList.find(m_strNodeName);
-	//	if (it != FileData->InterpolationFrameMatrixList.end())
-	//	{
-	//		Matrix matTranspose = it->second[InterpolationIdx].Transpose();
-	//		//ConstantBufferData_Bone CBData_Bone;
-	//		BPAnimData.Bone[0] = matTranspose;
-	//	}
-	//}
-	//else
+	
+	if (mesh->BindPoseMap.empty())
+	{
+		auto it = LerpFrameMatrixList.find(mesh->Name);
+		if (it != LerpFrameMatrixList.end())
+		{
+			Matrix matTranspose = it->second[InterpolationIdx].Transpose();
+			//ConstantBufferData_Bone CBData_Bone;
+			mesh->BPAData.Bone[0] = matTranspose;
+		}
+	}
+	else
 	{
 		size_t BoneIdx = 0;
-		for (auto &it : mesh.BindPoseMap)
+		for (auto &it : mesh->BindPoseMap)
 		{
-			auto AnimationTrack = InterpolationFrameMatrixList.find(it.first);
-			if (AnimationTrack == InterpolationFrameMatrixList.end())
+			auto AnimationTrack = LerpFrameMatrixList.find(it.first);
+			if (AnimationTrack == LerpFrameMatrixList.end())
 			{
-				CurrentState.BPAnimData.Bone[BoneIdx++] = it.second;
+				mesh->BPAData.Bone[BoneIdx++] = it.second;
 			}
 			else
 			{
 				Matrix MergedMatrix = it.second * AnimationTrack->second[InterpolationIdx];
-				CurrentState.BPAnimData.Bone[BoneIdx++] = MergedMatrix.Transpose();
+				mesh->BPAData.Bone[BoneIdx++] = MergedMatrix.Transpose();
 			}
 		}
 		
